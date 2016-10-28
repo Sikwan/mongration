@@ -26,13 +26,13 @@ function Migration(dbConfig) {
 var validate = function(cb) {
     if(this.db){
 
-        this.db.collection(this.collection).find({}, {}, {order : 1}).toArray(function(err, docs){
+        this.db.collection(this.collection).find({}, {}).sort({order : 1}).toArray(function(err, docs){
             assert.equal(err, null);
             var _steps = utilities.arrayToObject(this.steps, 'id');
 
             docs.forEach(function(dbStep, index){
                 if(this.steps[index]){
-                    this.steps[index].status = statuses.skipped;   
+                    this.steps[index].status = statuses.skipped;
 
                     if(!_steps[dbStep.id] || (dbStep.order && dbStep.order != _steps[dbStep.id].order)){
                         this.steps[index].status = statuses.error;
@@ -91,7 +91,7 @@ var rollback = function(cb, error) {
                 }
             }.bind(this)
         }.bind(this)),
-        
+
         function(err, results){
             this.steps = merge(this.steps, reverseSteps.reverse());
             cb(err || error);
@@ -129,7 +129,7 @@ Migration.prototype.migrate = function(doneCb) {
     }.bind(this));
 
     new MongoConnection(this.dbConfig).connect(function(err, db){
-        assert.equal(err, null);        
+        assert.equal(err, null);
         this.db = db;
 
         validate.call(this, function(err){
